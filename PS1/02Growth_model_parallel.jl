@@ -1,5 +1,7 @@
+@everywhere using Parameters, Plots, SharedArrays
+
 #keyword-enabled structure to hold model primitives
-@with_kw struct Primitives
+@everywhere @with_kw struct Primitives
     β::Float64 = 0.99 #discount rate
     δ::Float64 = 0.025 #depreciation rate
     α::Float64 = 0.36 #capital share
@@ -13,28 +15,31 @@
 end
 
 #structure that holds model results
-mutable struct Results
-    val_func::Array{Float64,2} #value function
-    pol_func::Array{Float64,2} #policy function
+@everywhere mutable struct Results
+    val_func::SharedArray{Float64,2} #value function
+    pol_func::SharedArray{Float64,2} #policy function
 end
 
 #function for initializing model primitives and results
-function Initialize()
+@everywhere function Initialize()
     prim = Primitives() #initialize primtiives
-    val_func = zeros(prim.nk, prim.nz) #initial value function guess
-    pol_func = zeros(prim.nk, prim.nz) #initial policy function guess
+    val_func = SharedArray{Float64}(zeros(prim.nk, prim.nz)) #initial value function guess = SharedArray{float....}
+    pol_func = SharedArray{Float64}(zeros(prim.nk, prim.nz)) #initial policy function guess
     res = Results(val_func, pol_func) #initialize results struct
     prim, res #return deliverables
 end
 
 #Bellman Operator
-function Bellman(prim::Primitives,res::Results)
+@everywhere function Bellman(prim::Primitives,res::Results)
     @unpack val_func = res #unpack value function
     @unpack k_grid, z_grid, β, δ, α, nk, nz, markov = prim #unpack model primitives
-    v_next = zeros(nk, nz) #next guess of value function to fill
+    v_next = SharedArray{Float64}(zeros(nk, nz)) #next guess of value function to fill
 
     #choice_lower = 1 #for exploiting monotonicity of policy function
-    for k_index = 1:nk, z_index = 1:nz #loop over k/z states
+    @sync @distributed for i = 1:nk*nz
+        z_index = mod(i, nz) + 1 #will spit out 1, then 2
+        k_index = mod(ceil(Int64, i/nz), nk) + 1 #nk is a grid to 1000. We want to get rid of the *2 and then cut get the # of pts
+        #k_index = 1:nk, z_index = 1:nz #loop over k/z states #for parallelization have to unite nk and nz
         k, z = k_grid[k_index], z_grid[z_index] #value of k and z
         candidate_max = -Inf #bad candidate max
         budget = z*k^α + (1-δ)*k #budget
@@ -43,7 +48,7 @@ function Bellman(prim::Primitives,res::Results)
             kp = k_grid[kp_index]
             c = budget - kp #consumption given k' selection
             if c>0 #check for positivity
-                val = log(c) + β * sum(res.val_func[kp_index,:].*markov[z_index,:]) #compute value, expectation over z'
+                val = log(c) + β * sum(res.val_func[kp_index,:].*markov[z_index,:]) #compute value
                 if val>candidate_max #check for new max value
                     candidate_max = val #update max value
                     res.pol_func[k_index, z_index] = kp #update policy function
@@ -57,7 +62,7 @@ function Bellman(prim::Primitives,res::Results)
 end
 
 #Value function iteration
-function V_iterate(prim::Primitives, res::Results; tol::Float64 = 1e-4, err::Float64 = 100.0)
+@everywhere function V_iterate(prim::Primitives, res::Results; tol::Float64 = 1e-4, err::Float64 = 100.0)
     n = 0 #counter
     err = 100
 
