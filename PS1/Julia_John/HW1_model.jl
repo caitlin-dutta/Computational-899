@@ -1,9 +1,11 @@
 using Parameters, Plots
-include("HW1_test.jl")
+include("HW1_func.jl")
 
 #initialize the Primitives and Results structs, respectively
 prim, res = Initialize()
-@elapsed solve_model(prim,res) #solve the model using functions in the included file
+solve_model(prim,res) #call model solver once to compile the model functions. This first iteration is not used for the time benchmark to avoid counting compilation time as well
+prim, res = Initialize() #need to re-initialize structs so that we start with a clean slate for the benchmark run 
+@elapsed solve_model(prim,res) #solve the model using functions in the included file and record the amount of time it took
 
 @unpack val_func, pol_func = res #unpack the value and policy functions
 @unpack k_grid = prim #unpack the capital grid for plotting
