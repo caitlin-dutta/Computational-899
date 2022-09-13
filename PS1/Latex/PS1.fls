@@ -1,8 +1,8 @@
-PWD /Users/johnhiggins/Documents/F22/Computational/PS1/Latex
+PWD /Users/johnhiggins/Documents/Computational-899/PS1/Latex
 INPUT /usr/local/texlive/2022/texmf.cnf
 INPUT /usr/local/texlive/2022/texmf-dist/web2c/texmf.cnf
 INPUT /usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT /Users/johnhiggins/Documents/F22/Computational/PS1/Latex/PS1.tex
+INPUT /Users/johnhiggins/Documents/Computational-899/PS1/Latex/PS1.tex
 OUTPUT PS1.log
 INPUT /usr/local/texlive/2022/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/local/texlive/2022/texmf-dist/tex/latex/base/article.cls
