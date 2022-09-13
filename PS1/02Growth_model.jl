@@ -38,8 +38,8 @@ function Bellman(prim::Primitives,res::Results)
         k, z = k_grid[k_index], z_grid[z_index] #value of k and z
         candidate_max = -Inf #bad candidate max
         budget = z*k^α + (1-δ)*k #budget
-
-        for kp_index in 1:nk #loop over possible selections of k',we dont choose z so we dont loop over choices of it
+        choice_lower = 1
+        for kp_index in choice_lower:nk #loop over possible selections of k',we dont choose z so we dont loop over choices of it
             kp = k_grid[kp_index]
             c = budget - kp #consumption given k' selection
             if c>0 #check for positivity
@@ -47,7 +47,7 @@ function Bellman(prim::Primitives,res::Results)
                 if val>candidate_max #check for new max value
                     candidate_max = val #update max value
                     res.pol_func[k_index, z_index] = kp #update policy function
-                    #choice_lower = kp_index #update lowest possible choice
+                    choice_lower = kp_index #update lowest possible choice
                 end
             end
         end
