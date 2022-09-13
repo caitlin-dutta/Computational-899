@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/W32TeX) (preloaded format=pdflatex 2018.12.28)  12 SEP 2022 21:02
+=======
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.6)  12 SEP 2022 21:10
+>>>>>>> 326bdec53505d98fbedb1c88332ee8d3904e4228
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
+<<<<<<< HEAD
 **c:/Users/Johnny/Computational-899/PS1/Latex/PS1.tex
 (c:/Users/Johnny/Computational-899/PS1/Latex/PS1.tex
 LaTeX2e <2018-12-01>
@@ -25,6 +30,30 @@ File: size12.clo 2018/09/03 v1.4i Standard LaTeX file (size option)
 ) (c:/texlive/2018/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2018/04/16 v5.8 Page Geometry
  (c:/texlive/2018/texmf-dist/tex/latex/graphics/keyval.sty
+=======
+**/Users/johnhiggins/Documents/Computational-899/PS1/Latex/PS1.tex
+(/Users/johnhiggins/Documents/Computational-899/PS1/Latex/PS1.tex
+LaTeX2e <2021-11-15> patch level 1
+L3 programming layer <2022-02-24> (/usr/local/texlive/2022/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2021/10/04 v1.4n Standard LaTeX document class
+(/usr/local/texlive/2022/texmf-dist/tex/latex/base/size12.clo
+File: size12.clo 2021/10/04 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count185
+\c@section=\count186
+\c@subsection=\count187
+\c@subsubsection=\count188
+\c@paragraph=\count189
+\c@subparagraph=\count190
+\c@figure=\count191
+\c@table=\count192
+\abovecaptionskip=\skip47
+\belowcaptionskip=\skip48
+\bibindent=\dimen138
+) (/usr/local/texlive/2022/texmf-dist/tex/latex/geometry/geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+ (/usr/local/texlive/2022/texmf-dist/tex/latex/graphics/keyval.sty
+>>>>>>> 326bdec53505d98fbedb1c88332ee8d3904e4228
 Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
 \KV@toks@=\toks14
 ) (c:/texlive/2018/texmf-dist/tex/generic/oberdiek/ifpdf.sty
@@ -180,6 +209,7 @@ l.17 \def
 
  
 Here is how much of TeX's memory you used:
+<<<<<<< HEAD
  2564 strings out of 492616
  33502 string characters out of 6132782
  103424 words of memory out of 5000000
@@ -188,3 +218,20 @@ Here is how much of TeX's memory you used:
  1141 hyphenation exceptions out of 8191
  27i,0n,43p,318b,36s stack positions out of 5000i,500n,10000p,200000b,80000s
 c:/texlive/2018/texmf-dist/tex/latex/environ/environ.sty:17:  ==> Fatal error occurred, no output PDF file produced!
+=======
+ 26331 strings out of 478268
+ 494999 string characters out of 5846348
+ 753624 words of memory out of 5000000
+ 44094 multiletter control sequences out of 15000+600000
+ 475693 words of font info for 53 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 84i,12n,89p,582b,552s stack positions out of 10000i,1000n,20000p,200000b,200000s
+{/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
+Output written on PS1.pdf (6 pages, 308954 bytes).
+PDF statistics:
+ 120 PDF objects out of 1000 (max. 8388607)
+ 77 compressed objects within 1 object stream
+ 12 named destinations out of 1000 (max. 500000)
+ 69 words of extra memory for PDF output out of 10000 (max. 10000000)
+
+>>>>>>> 326bdec53505d98fbedb1c88332ee8d3904e4228
