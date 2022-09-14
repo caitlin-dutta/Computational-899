@@ -2,7 +2,7 @@
 %Do not alter this block of commands.  If you're proficient at LaTeX, you may include additional packages, create macros, etc. immediately below this block of commands, but make sure to NOT alter the header, margin, and comment settings here. 
 \documentclass[12pt]{article}
  \usepackage[margin=1in]{geometry} 
-\usepackage{amsmath,amsthm,amssymb,amsfonts, enumitem, fancyhdr, color, comment, graphicx, environ,mathtools, bbm, tikz, setspace, cleveref,listings, dcolumn}
+\usepackage{amsmath,amsthm,amssymb,amsfonts, hyperref,enumitem, fancyhdr, color, comment, graphicx, environ,mathtools, bbm, tikz, setspace, cleveref,listings, dcolumn}
 \usepackage{array, multirow, caption, booktabs}
 \usepackage{ mathrsfs }
 \usetikzlibrary{matrix,positioning}
@@ -49,7 +49,7 @@
 
 \begin{document}
 \section{Solution to questions (using Julia)}
-Note: I answer questions 1-3 using the output of my Julia program. I include the output for Matlab and Fortran in the next section. All code, figures, and auxiliary files can be found \href{https://github.com/johnfhiggins/F22/tree/master/Computational/PS1}{here}. 
+Note: Questions 1-3 are answered using the output of our Julia program. However, the answers are obviously the same for any of the languages. We include the output for Matlab and Fortran in the next section. All code, figures, and auxiliary files can be found \href{https://github.com/caitlin-dutta/Computational-899/tree/main/PS1}{here}. 
 \begin{enumerate}
 	\item The agent's dynamic programming problem is as follows. Given a current level of capital $k$ and realization of productivity level $z$, the agent's value is given by the following:
 	\[V(k, z) = \max_{(k', c) \in \Gamma(k,z)} u(c) + \beta \sum_{z' \in Z} V(k', z') \Pi(z', z)\]
@@ -57,13 +57,13 @@ Note: I answer questions 1-3 using the output of my Julia program. I include the
 	\begin{align*}\Gamma(k,z) = \{(k', c) \in \mathbb{R}^2_+ \mid k' + c \leq z k^{\theta} + (1-\delta) k\}
 	\end{align*}
 	is the set of feasible choices of consumption and future capital given current capital $k$ and productivity $z$.
-    \item Below, I plot the value function for $K$ over each state $Z$. It is evident that $V(k, z)$ is increasing in $z$ since the high productivity function lies above the low productivity function. Furthermore, it is `concave' in $K$, as the difference between the two shrinks as $K$ grows. To more clearly see these relationships, I have plotted $V(\cdot, Z^g) - V(\cdot, Z^b)$ for all $K$. It is clear that the difference is positive and decreasing in $K$, verifying the previous claims.
+    \item Below, we plot the value function for $K$ over each state $Z$. It is evident that $V(k, z)$ is increasing in $z$ since the high productivity function lies above the low productivity function. Furthermore, it is `concave' in $K$, as the difference between the two shrinks as $K$ grows. To more clearly see these relationships, we have plotted $V(\cdot, Z^g) - V(\cdot, Z^b)$ for all $K$. It is clear that the difference is positive and decreasing in $K$, verifying the previous claims.
     \begin{center}
         \includegraphics[scale=0.4]{vfplot.png}\\
         \includegraphics[scale=0.4]{netvfplot.png}\\
         Figures generated using Julia
     \end{center}
-    \item The decision rule is increasing in both $K$ and $Z$. To see this, I plot the policy function as a function of $K$ for both high and low productivity levels below. For both types, $K'(k,z)$ is increasing in $k$. Furthermore, it is evident that the policy function for high productivity agents is higher than that of low productivity agents.
+    \item The decision rule is increasing in both $K$ and $Z$. To see this, we plot the policy function as a function of $K$ for both high and low productivity levels below. For both types, $K'(k,z)$ is increasing in $k$. Furthermore, it is evident that the policy function for high productivity agents is higher than that of low productivity agents.
     \begin{center}
         \includegraphics[scale=0.4]{pfplot.png}
     \end{center}
@@ -91,7 +91,7 @@ Note: I answer questions 1-3 using the output of my Julia program. I include the
         Results using Fortran (parallelized)
     \end{center}
     \begin{center}
-        %insert figures here
+        \includegraphics[]{ps1_matlab_figures.png}
         Results using Matlab
     \end{center}
     Time comparison:
@@ -102,5 +102,5 @@ Note: I answer questions 1-3 using the output of my Julia program. I include the
         \item Fortran (non-parallelized): 3.067 seconds
         \item Fortran (parallelized): 0.188 seconds
     \end{itemize}
-    Note: I set the max capital level at 75 for each model. Originally, the code we were given had different capital grids (Fortran's only went up to 45, whereas the Julia one went up to 75). To enable a fair comparison, I made them all 75.
+    Note: I set the max capital level at 75 for the Julia and Fortran versions. Originally, the code we were given had different capital grids (Fortran's only went up to 45, whereas the Julia one went up to 75). To enable a fair comparison, I made them all 75.
 \end{document}
