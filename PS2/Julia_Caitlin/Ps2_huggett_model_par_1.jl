@@ -23,26 +23,13 @@ end
     Q::SharedArray{Float64} #endog transition matrix
 end
 
-#guess initial dist
-@everywhere function create_mu0(prim::Primitives)
-    @unpack na, ns = prim #unpack model primitives
-    μ_0 = zeros(na, ns)
-        for j=1:na
-            for si = 1:2
-                μ_0[j, si] = (1)/(2*na) #* Π_st[si]
-            end
-        end
-    μ_0
-end
-
-
 #function for initializing model primitives and results
 @everywhere function Initialize()
     prim = Primitives() #initialize primtiives
     val_func = SharedArray{Float64}(zeros(prim.na, prim.ns)) #initial value function guess
     pol_func = SharedArray{Float64}(zeros(prim.na, prim.ns)) #initial policy function guess
     pol_func_ind = SharedArray{Int64}(zeros(prim.na, prim.ns))
-    Q = zeros(prim.na, 2, prim.na, 2) #empty transition matrix
+    Q = Q_finder(prim, res) #empty transition matrix
     μ = create_mu0(prim) #guessed initial distribution
     res = Results(val_func, pol_func, pol_func_ind, μ, Q) #initialize results struct
     prim, res #return deliverables
@@ -100,23 +87,33 @@ end
 end
 
 ## T*
+    @everywhere function create_mu0(prim::Primitives)
+        @unpack na, ns = prim #unpack model primitives
+        μ_0 = SharedArray{Float64}(zeros(na, ns))
+            for j=1:na
+                for si = 1:2
+                    μ_0[j, si] = (1)/(2*na) #* Π_st[si]
+                end
+            end
+        μ_0
+    end
 
-@everywhere function Q_finder(prim::Primitives, res::Results) #find Q
-    @unpack na, markov= prim
-    pf_ind = res.pol_func_ind #policy index matrix
-    Q = zeros(na, 2, na, 2)
-    for sp_i = 1:2
-        for ap_i = 1:na
-            ap_choosers = findall(==(ap_i), pf_ind) #find all indices a_i, s_i which lead to choice of ap
-            for x in ap_choosers #iterate over each element
-                ai = x[1]
-                si = x[2]
-                Q[ai, si, ap_i, sp_i] = markov[si, sp_i]
+    @everywhere function Q_finder(prim::Primitives, res::Results) #find Q
+        @unpack  na, markov = prim
+        pf_ind = res.pol_func_ind #policy index matrix
+        Q = zeros(na, 2, na, 2)
+        for sp_i = 1:2
+            for ap_i = 1:na
+                ap_choosers = findall(==(ap_i), pf_ind) #find all indices a_i, s_i which lead to choice of ap
+                for x in ap_choosers #iterate over each element
+                    ai = x[1]
+                    si = x[2]
+                    Q[ai, si, ap_i, sp_i] = markov[si, sp_i]
+                end
             end
         end
+        Q
     end
-    Q
-end
 
 
     @everywhere function create_mu1(prim::Primitives,res::Results)
@@ -125,42 +122,41 @@ end
         μ_0 = res.μ
         Q = res.Q
         μ_1 = SharedArray{Float64}(zeros(na, ns))
-        @sync @distributed for ap_i =1:na
-             val_h = 0.0
-             val_l = 0.0
-             for a_i = 1:na
-                 for s_i = 1:2
-                     val_h += Q[a_i, s_i, ap_i, 1]*μ_0[a_i, s_i] #employed
-                     val_l += Q[a_i, s_i, ap_i, 2]*μ_0[a_i, s_i] #unemployed
-                 end
-             end
-             μ_1[ap_i, 1] = val_h
-             μ_1[ap_i, 2] = val_l
-         end
-         μ_1
+        for ap = 1:na
+            val_e = 0.0
+            val_u = 0.0
+            for ai = 1:na
+                for si = 1:ns
+                    val_e = μ_0[ai, si] * Q[ai, si, ap, 1] #emp
+                    val_u = μ_0[ai, si] * Q[ai, si, ap, 2] #unemp
+                end
+            end
+            μ_1[ap, 1] = val_e
+            μ_1[ap, 2] = val_u
+        end
+        μ_1
     end
 
 
 
 
     @everywhere function Stationary_Dist(prim::Primitives,res::Results)
-        @unpack a_grid, markov, na, ns = prim #unpack model primitives
-        res.Q = Q_finder(prim::Primitives, res::Results)
-        supnorm = 10
+        @unpack na, ns = prim #unpack model primitives
+        res.Q = Q_finder(prim::Primitevs, res::Results)
+        supnorm = 1
         n = 0
-        #res.μ = create_mu0(prim::Primitives)
         while supnorm > 1e-3
             n += 1
-            μ_1 = create_mu1(prim::Primitives, res::Results)
+            μ_1 = create_mu1(prim, res)
             supnorm = maximum(abs.(μ_1 - res.μ))/maximum(abs.(res.μ))
             res.μ = copy(μ_1)
-            println("iteration ", n, " supnorm = ", supnorm)
-                if mod(n, 100) == 0
-                     println(n, ": ", supnorm)
-                 end
+            println("supnorm =", supnorm)
+            if mod(n, 100) == 0
+                 println(n, ": ", supnorm)
+             end
         end
-        println(" dist converged in ", n, " iterations.")
         res.μ
+        println(" dist converged in ", n, " iterations.")
     end
 
 #=

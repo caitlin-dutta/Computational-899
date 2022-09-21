@@ -4,7 +4,8 @@ include("Ps2_huggett_model_par.jl") #import the functions that solve our growth 
 
 prim, res = Initialize() #initialize primitive and results structs
 @time Solve_model(prim, res) #solve the model!
-@unpack val_func, pol_func = res
+@time Stationary_Dist(prim, res)
+@unpack val_func, pol_func, pol_func_ind = res
 @unpack a_grid, q = prim
 
 ##############Make plots
