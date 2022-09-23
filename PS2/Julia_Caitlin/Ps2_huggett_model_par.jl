@@ -11,7 +11,6 @@
     markov::Array{Float64,2} = [0.97 0.03 ; 0.5 0.5] #transition matrix
     s_grid::Array{Float64,1} = [1, 0.5] #unemployed/employed earnings shocks
     ns::Int64 = length(s_grid)
-    q::Float64 = 0.99 #starting price
 end
 
 #structure that holds model results
@@ -21,6 +20,8 @@ end
     pol_func_ind::SharedArray{Int64,2} #policy function
     μ::SharedArray{Float64} #invar_dist
     Q::SharedArray{Float64} #endog transition matrix
+    q::Float64
+    #xd::Float64
 end
 
 #guess initial dist
@@ -41,17 +42,19 @@ end
     prim = Primitives() #initialize primtiives
     val_func = SharedArray{Float64}(zeros(prim.na, prim.ns)) #initial value function guess
     pol_func = SharedArray{Float64}(zeros(prim.na, prim.ns)) #initial policy function guess
-    pol_func_ind = SharedArray{Int64}(zeros(prim.na, prim.ns))
+    pol_func_ind = SharedArray{Int64}(ones(prim.na, prim.ns))
     Q = zeros(prim.na, 2, prim.na, 2) #empty transition matrix
     μ = create_mu0(prim) #guessed initial distribution
-    res = Results(val_func, pol_func, pol_func_ind, μ, Q) #initialize results struct
+    q = 0.99 #starting q guess
+#    xd = 0 #starting xd
+    res = Results(val_func, pol_func, pol_func_ind, μ, Q, q) #initialize results struct
     prim, res #return deliverables
 end
 
 #Bellman Operator
 @everywhere function Bellman(prim::Primitives,res::Results)
-    @unpack val_func = res #unpack value function
-    @unpack a_grid, s_grid, β, α, na, ns, markov, q = prim #unpack model primitives
+    @unpack val_func, q = res #unpack value function
+    @unpack a_grid, s_grid, β, α, na, ns, markov= prim #unpack model primitives
     v_next = SharedArray{Float64}(zeros(na, ns)) #next guess of value function to fill
 
     #choice_lower = 1 #for exploiting monotonicity of policy function
@@ -121,9 +124,10 @@ end
 
     @everywhere function create_mu1(prim::Primitives,res::Results)
         @unpack na, ns = prim #unpack model primitives
-        @unpack pol_func, pol_func_ind = res #unpack model primitives
-        μ_0 = res.μ
-        Q = res.Q
+        @unpack μ, Q = res
+        #@unpack pol_func, pol_func_ind = res #unpack model primitives
+        μ_0 = μ
+        #Q = Q
         μ_1 = SharedArray{Float64}(zeros(na, ns))
         @sync @distributed for ap_i =1:na
              val_h = 0.0
@@ -140,38 +144,78 @@ end
          μ_1
     end
 
-
-
-
     @everywhere function Stationary_Dist(prim::Primitives,res::Results)
         @unpack a_grid, markov, na, ns = prim #unpack model primitives
+        @unpack Q,  μ = res
+        println("finding ms. Q")
         res.Q = Q_finder(prim::Primitives, res::Results)
-        supnorm = 10
+        println("found ms. Q")
+        supnorm = 100
+        tol = 1e-4
         n = 0
         #res.μ = create_mu0(prim::Primitives)
-        while supnorm > 1e-3
+        while supnorm > tol
             n += 1
-            μ_1 = create_mu1(prim::Primitives, res::Results)
+            μ_1 = create_mu1(prim, res)
             supnorm = maximum(abs.(μ_1 - res.μ))/maximum(abs.(res.μ))
-            res.μ = copy(μ_1)
-            println("iteration ", n, " supnorm = ", supnorm)
+            res.μ = μ_1
+            #println("iteration ", n, " supnorm = ", supnorm)
                 if mod(n, 100) == 0
                      println(n, ": ", supnorm)
                  end
         end
         println(" dist converged in ", n, " iterations.")
-        res.μ
+        #res.μ = μ
+        #=check = 0
+        for ai = 1:na
+            for si = 1:ns
+                check += res.μ[ai, si]
+            end
+        end=#
     end
 
-#=
-     for i = 1:na*ns #loop over a/s states
-                si = mod(i,ns) + 1
-                ai = mod(ceil(Int64, i/ns), na) + 1
-                    for sp = 1:ns
-                        μ_1[res.pol_func_ind[ai,si], sp] += μ_0[ai, si] * Q[ai, si,  sp]
-                    end
-                μ_0 = μ_1
-=#
+##
+#Asset market clearing
+    @everywhere function excess_demand(prim::Primitives, res::Results)
+        @unpack na, ns = prim
+        @unpack pol_func, μ, q = res
+        xd = 0
+        for ai = 1:na
+            for si = 1:ns
+                xd += (pol_func[ai, si] * μ[ai, si])
+            end
+        end
+        println("excess demand is", xd)
+        xd
+    end
 
+    @everywhere function findq(prim::Primitives, res::Results)
+        @unpack q = res
+        @unpack β = prim
+        xd = excess_demand(prim, res) #starting xd
+        n = 0
+        tol = 1e-2
+        q_low = β
+        q_high = 1
+        while abs(xd) > tol
+            n += 1
+        #    adjustment_step = 0.1*q
+            if xd>0
+                q_low = res.q
+            #    res.q = q+adjustment_step
+            elseif xd<0
+                #res.q = q-adjustment_step
+                q_high = res.q
+            end
+            res.q = (q_high + q_low)/2
+            println("new q is", res.q)
+            Solve_model(prim, res)
+            Stationary_Dist(prim, res)
+            xd = excess_demand(prim,res)
+            println("iteration #", n)
+        end
+        println("xd < 1e-4, market clears at q = ", res.q)
+    end
+#q = 0.9942768177032469
 
-    ##############################################################################
+##############################################################################
