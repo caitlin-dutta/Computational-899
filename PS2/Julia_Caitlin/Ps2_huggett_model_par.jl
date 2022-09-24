@@ -218,4 +218,38 @@ end
     end
 #q = 0.9942768177032469
 
+##
+    @everywhere function lorenz(prim::Primitives, res::Results)
+        @unpack na = prim
+        @unpack μ = res
+        wealth = zeros(na, 2)
+        for ai = 1:na #wealth levels
+            wealth[ai,1] = a_grid[ai] +1
+            wealth[ai,2] = a_grid[ai] +0.5
+        end
+
+        w_dist = zeros(na)
+        for ai = 1:na
+            w_dist[ai] = wealth[ai,1]*μ[ai,1] +  wealth[ai,2]*μ[ai,2]
+        end
+
+        cdf = zeros(na)
+        cdf_xaxis = zeros(na)
+        denom = 0
+        for i = 1:na
+            denom += i
+        end
+
+        for ai = 2:na
+            cdf[ai] = (w_dist[ai] + w_dist[ai-1])/sum(w_dist)
+            cdf_xaxis[ai] = ai/sum(w_dist)
+        end
+        cdf
+    end
+
+    lorenz(prim,res)
+    Plots.plot(cdf_xaxis, w_dist, title="Lorenz , q = $q")
+
+
+
 ##############################################################################
