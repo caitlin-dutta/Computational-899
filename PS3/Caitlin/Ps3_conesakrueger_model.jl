@@ -1,0 +1,217 @@
+#Comp 899 PS2 Caitlin Dutta
+#keyword-enabled structure to hold model primitives
+@everywhere using Parameters, Plots, SharedArrays
+@everywhere @with_kw struct Primitives
+    β::Float64 = 0.97 #discount rate
+    γ::Float64 = 0.42 #coefficient of rr a
+    w::Float64 = 1.05 #wage
+    r::Float64 = 0.05 #rental rate
+    b::Float64 = 0.2 #ss benefit
+    θ::Float64 = 0.11 #SS tax on labor
+    σ::Float64 = 2
+    a_min::Float64 = 0 #asset lower bound
+    a_max::Float64 = 75 #asset upper bound
+    na::Int64 = 1000 #number of asset grid points
+    N::Int64 = 66 #model length
+    Nr::Int64 = 46 #retirement age
+    η::Array{Float64,1} = map(x->parse(Float64,x), readlines("C:/Users/caitl/OneDrive/Documents/Second year/Computational 899/PS3/Caitlin/ef.txt"))
+    a_grid::Array{Float64,1} = collect(range(a_min, length = na, stop = a_max)) #capital grid
+    markov::Array{Float64,2} = [0.9261 0.0739 ; 0.0189 0.9811] #transition matrix
+    s_grid::Array{Float64,1} = [3, 0.5] #high/low productivity shocks
+    ns::Int64 = length(s_grid)
+end
+
+
+#structure that holds model results
+@everywhere mutable struct Results
+    val_func::SharedArray{Float64,3} #value function
+    pol_func::SharedArray{Float64,3} #policy function
+    pol_func_ind::SharedArray{Int64,3} #policy function
+    labor::SharedArray{Float64, 3} #labor choices
+    F::SharedArray{Float64, 3} #F dist
+end
+
+#F' = F0 + F*s'
+
+#function for initializing model primitives and results
+@everywhere function Initialize()
+    prim = Primitives()
+    val_func = SharedArray{Float64}(zeros(prim.N, prim.na, prim.ns)) #initial value function guess
+    pol_func = SharedArray{Float64}(zeros(prim.N, prim.na, prim.ns)) #initial policy function guess
+    pol_func_ind = SharedArray{Int64}(ones(prim.N, prim.na, prim.ns))
+    labor = SharedArray{Float64}(zeros(prim.N, prim.na, prim.ns)) #initial policy function guess
+    F = SharedArray{Float64}(zeros(prim.N, prim.na, prim.ns)) #F dist
+    res = Results(val_func, pol_func, pol_func_ind, labor, F) #initialize results struct
+    prim, res #return deliverables
+end
+
+#Bellman Operator
+@everywhere function Bellman_retired(prim::Primitives,res::Results)
+    @unpack val_func = res #unpack value function
+    @unpack a_grid, β, r, b, σ, γ, na, ns, N, Nr, markov = prim #unpack model primitives
+    v_next = SharedArray{Float64}(zeros(N, na, ns)) #next guess of value function to fill
+    #Backwards iteration from period before retiring
+    @sync @distributed for n = (N-1):-1:Nr #backwards iteration
+    for ai = 1:na #loop over a states
+    for si = 1:ns
+        a = a_grid[ai]
+        res.val_func[N,ai,1] = (((1+r)*a+b)^((1-σ)*γ))/(1-σ) #in pd N agent consumes all remaining a
+        candidate_max = -Inf
+            budget = (1+r)*a_grid[ai] + b
+            choice_lower = 1
+            for api = choice_lower:na #loop over potential a'
+                ap = a_grid[api]
+                c = budget - ap
+                if c>0 #check for positivity
+                    val = (c^((1-σ)*γ))/(1-σ) + β * (res.val_func[n+1,api,1]) #compute value
+                    if val>candidate_max #check for new max value
+                        candidate_max = val #update max value
+                        res.pol_func[n, ai, si] = ap #update policy function
+                        res.pol_func_ind[n, ai, si] = api #update policy function
+                    #    choice_lower = api #update lowest possible choice
+                    end #if val
+                end #if c
+            end #api
+        res.val_func[n, ai, si] = candidate_max #update value function
+    end #si
+    end #ai
+    end #n
+    val_func
+end #func
+
+
+#Bellman Operator
+@everywhere function Bellman_worker(prim::Primitives,res::Results)
+    @unpack val_func = res #unpack value function
+    @unpack a_grid, s_grid, β, w, r, b, σ, γ, η, θ, na, ns, N, Nr, markov = prim #unpack model primitives
+    v_next = SharedArray{Float64}(zeros(N, na, ns)) #next guess of value function to fill
+    #Backwards iteration from period before retiring
+    labor = SharedArray{Float64}(zeros(N,na,ns))
+    @sync @distributed for n = Nr-1:-1:1 #backwards iteration
+    for ai = 1:na #loop over a states
+        for si = 1:ns
+        s = s_grid[si]
+        a = a_grid[ai]
+        eta = η[n]
+        candidate_max = -Inf
+        choice_lower = 1
+            for api = choice_lower:na #loop over potential a'
+                ap = a_grid[api]
+                l = (γ*(1-θ)*s*eta*w) - ((1-γ)*((1+r)*a - ap))  / ((1-θ)*w*s*eta)
+                res.labor[n,ai,si] = l
+                budget = w*(1-θ)*s*η[n]*l + (1+r)*a_grid[ai]
+                c = budget - ap
+                if c>0 #check for positivity
+                    if l<1
+                    val = ( (c^γ) * ((1-l)^(1-γ)) ) ^ (1-σ) / (1-σ) + β * sum(res.val_func[n+1,api,:].*markov[si,:]) #compute value
+                    if val>candidate_max #check for new max value
+                        candidate_max = val #update max value
+                        res.pol_func[n, ai, si] = ap #update policy function
+                        res.pol_func_ind[n, ai, si] = api #update policy function
+                    #    choice_lower = api #update lowest possible choice
+                    end #if val
+                end
+                end #if c
+            end #api
+        res.val_func[n, ai, si] = candidate_max #update value function
+    end #si
+end #ai
+end #n
+    val_func
+end #func
+
+
+#solve the model
+@everywhere function Solve_model(prim::Primitives, res::Results)
+    res.val_func = Bellman_retired(prim, res) #spit out new vectors
+    res.val_func = Bellman_worker(prim,res)
+end
+
+## T*
+
+#find size of each cohort, growth rate means more young than old
+#start w guess that initial size = 1, then decay to get every age
+#add up and then divide all by sum so total size of mu = 1
+
+    @everywhere function Cohort_size(prim::Primitives, res::Results)
+        @unpack N = prim
+        c_size = zeros(66)
+        pg = 0.011
+        c_size[1] = 1
+        for i = 2:N
+            c_size[i] = c_size[i-1]/(1+pg)
+        end
+        c_sum = sum(c_size)
+        c_size_n = c_size./c_sum
+    end
+
+
+    @everywhere function create_F(prim::Primitives,res::Results)
+        @unpack na, ns, N, markov = prim #unpack model primitives
+        @unpack pol_func, pol_func_ind, F = res #unpack model primitives
+        c_size_n = Cohort_size(prim, res)
+        F[1,1,1] = c_size_n[1]*0.2037
+        F[1,1,2] = c_size_n[1]*0.7963
+
+        for n = 1:N-1
+            for ai = 1:na
+                for si = 1:ns
+                    api = pol_func_ind[n,ai,si]
+                    for spi = 1:ns
+                        F[n+1,api,spi] += F[n,ai,si] * markov[si,spi]/(n+1)
+                    end
+                end
+            end
+        end
+        res.F = F
+        F
+    end
+
+#=
+##
+#Asset market clearing
+    @everywhere function excess_demand(prim::Primitives, res::Results)
+        @unpack na, ns = prim
+        @unpack pol_func, μ, q = res
+        xd = 0
+        for ai = 1:na
+            for si = 1:ns
+                xd += (pol_func[ai, si] * μ[ai, si])
+            end
+        end
+        println("excess demand is", xd)
+        xd
+    end
+
+    @everywhere function findq(prim::Primitives, res::Results)
+        @unpack q = res
+        @unpack β = prim
+        xd = excess_demand(prim, res) #starting xd
+        n = 0
+        tol = 1e-2
+        q_low = β
+        q_high = 1
+        while abs(xd) > tol
+            n += 1
+        #    adjustment_step = 0.1*q
+            if xd>0
+                q_low = res.q
+            #    res.q = q+adjustment_step
+            elseif xd<0
+                #res.q = q-adjustment_step
+                q_high = res.q
+            end
+            res.q = (q_high + q_low)/2
+            println("new q is", res.q)
+            Solve_model(prim, res)
+            Stationary_Dist(prim, res)
+            xd = excess_demand(prim,res)
+            println("iteration #", n)
+        end
+        println("xd < 1e-4, market clears at q = ", res.q)
+    end
+
+=#
+
+
+##############################################################################
