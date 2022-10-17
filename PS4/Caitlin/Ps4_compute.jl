@@ -1,7 +1,7 @@
 
 
-include("Ps3_conesakrueger_cv_model.jl") #import the functions that solve our growth model
-@time prim, res, welfare = Solve_model() #solve the model!
+include("Ps4_model.jl") #import the functions that solve our growth model
+prim, res, res4 = Solve_model()
 
 #=using Distributed
 addprocs(6)
@@ -10,6 +10,8 @@ prim, res = Initialize() #initialize primitive and results structs
 @time Solve_model(prim,res)
 @time create_F(prim, res)
 =#
+
+#test = load_object("res4.jld2")
 
 xax = zeros(66)
 for i =1:66
