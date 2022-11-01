@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.6)  1 NOV 2022 00:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.6)  1 NOV 2022 14:45
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/Users/johnhiggins/Documents/F22/Computational/PS7/PS7.tex
-(/Users/johnhiggins/Documents/F22/Computational/PS7/PS7.tex
+**/Users/johnhiggins/Documents/Computational-899/PS7/Latex/PS7.tex
+(/Users/johnhiggins/Documents/Computational-899/PS7/Latex/PS7.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-02-24> (/usr/local/texlive/2022/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2021/10/04 v1.4n Standard LaTeX document class
@@ -687,7 +687,6 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 50.
 LaTeX Info: Redefining \pageref on input line 50.
 LaTeX Info: Redefining \nameref on input line 50.
- (./PS7.out) (./PS7.out)
 \@outlinefile=\write5
 \openout5 = `PS7.out'.
 
@@ -750,33 +749,49 @@ File: jthplot_3_2nd.png Graphic file (type png)
 Package pdftex.def Info: jthplot_3_2nd.png  used on input line 189.
 (pdftex.def)             Requested size: 240.89572pt x 160.59715pt.
  [10 <./jthplot_3_2nd.png>] [11]
-<rho_bootstrap.png, id=83, 602.25pt x 401.5pt>
-File: rho_bootstrap.png Graphic file (type png)
-<use rho_bootstrap.png>
-Package pdftex.def Info: rho_bootstrap.png  used on input line 211.
-(pdftex.def)             Requested size: 301.12425pt x 200.7495pt.
-<sigma_bootstrap.png, id=84, 602.25pt x 401.5pt>
+
+LaTeX Warning: File `rho_bootstrap.png' not found on input line 211.
+
+
+/Users/johnhiggins/Documents/Computational-899/PS7/Latex/PS7.tex:211: Package pdftex.def Error: File `rho_bootstrap.png' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.211 ...udegraphics[scale=0.5]{rho_bootstrap.png}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+<sigma_bootstrap.png, id=83, 602.25pt x 401.5pt>
 File: sigma_bootstrap.png Graphic file (type png)
 <use sigma_bootstrap.png>
 Package pdftex.def Info: sigma_bootstrap.png  used on input line 214.
 (pdftex.def)             Requested size: 301.12425pt x 200.7495pt.
- [12 <./rho_bootstrap.png> <./sigma_bootstrap.png>] (./PS7.aux)
-Package rerunfilecheck Info: File `PS7.out' has not changed.
-(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+[12 <./sigma_bootstrap.png>] (./PS7.aux)
+
+Package rerunfilecheck Warning: File `PS7.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `PS7.out':
+(rerunfilecheck)             Before: <no file>
+(rerunfilecheck)             After:  D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 26344 strings out of 478268
- 495425 string characters out of 5846348
- 758617 words of memory out of 5000000
- 44093 multiletter control sequences out of 15000+600000
- 475404 words of font info for 52 fonts, out of 8000000 for 9000
+ 26378 strings out of 478268
+ 496163 string characters out of 5846348
+ 758548 words of memory out of 5000000
+ 44118 multiletter control sequences out of 15000+600000
+ 475573 words of font info for 53 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,12n,89p,864b,578s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on PS7.pdf (12 pages, 512396 bytes).
+ 84i,12n,89p,870b,578s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on PS7.pdf (12 pages, 501051 bytes).
 PDF statistics:
- 139 PDF objects out of 1000 (max. 8388607)
- 95 compressed objects within 1 object stream
+ 143 PDF objects out of 1000 (max. 8388607)
+ 98 compressed objects within 1 object stream
  26 named destinations out of 1000 (max. 500000)
- 58 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 53 words of extra memory for PDF output out of 10000 (max. 10000000)
 
