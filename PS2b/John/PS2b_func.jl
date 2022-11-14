@@ -125,7 +125,7 @@ end
 function halton_draws(n_draw, base)
     burn = n_draw*2
     halt_pre = Halton(base, length=n_draw + burn)
-    halt = halt_pre[burn:n_draw + burn]
+    halt = halt_pre[burn+1:n_draw + burn]
     #shocks = quantile.(Normal(0,1), halt)
     halt
 end
@@ -206,7 +206,55 @@ function likelihood_GHK(X, Z, T, α, β, γ, ρ, shock_mat)
     val
 end
 
+function likelihood_AR(X, Z, T, α, β, γ, ρ, shock_mat)
+    σ = 1/(1-ρ)
+    val = 0.0
+    dist = Normal(0,1)
+    ind_0 = α[1] .+ X'*β .+ Z[1]*γ
+    ind_1 = α[2] .+ X'*β .+ Z[2]*γ
+    ind_2 = α[3] .+ X'*β .+ Z[3]*γ
+    b_0 = -ind_0
+    b_1 = - ind_1
+    b_2 = - ind_2
+    ε_0 = σ .* quantile.(dist, shock_mat[:,1])
+    ε_1 = ρ .* ε_0 .+ quantile.(dist, shock_mat[:,2])
+    ε_0_acc = (ε_0 .> b_0) 
+    ε_1_acc = (ε_1 .> b_1)
+    ε_01_acc = ε_0_acc .* ε_1_acc
+    if T==1
+        val = cdf(dist,b_0/σ)
+    elseif T==2
+        if length((ε_0_acc .== 1)) > 0
+            val = sum(ε_0_acc .* cdf.(dist, b_1 .- ρ.*ε_0))/length((ε_0_acc .== 1))
+        end
+    elseif T==3
+        if length((ε_01_acc .== 1)) > 0
+            val = sum(ε_01_acc .* cdf.(dist, b_2 .- ρ.*ε_1))/length((ε_01_acc .== 1))
+        end
+    else #T ==4
+        if length((ε_01_acc .== 1)) > 0
+            val = sum( ε_01_acc.* (1 .- cdf.(dist, b_2 .- ρ .* ε_1)) )/length((ε_01_acc .== 1))
+        end
+    end
+    val
+end
+
 function log_like_quad(data::Data, θ)
+    @unpack X, Z, T, d1_quad, d2_quad = data
+    L = 0.0
+    α = θ[1:3]
+    β = θ[4:18]
+    γ = θ[19]
+    ρ = θ[20]
+    #L_vec = zeros(length(T))
+    for i=1:length(T)
+        L_i = likelihood_quad(data, X[i,:], Z[i,:], T[i], α, β, γ, ρ)
+        L += log(L_i)
+        #L_vec[i] = L_i
+    end
+    L#, L_vec
+end
+function log_like_quad_verbose(data::Data, θ)
     @unpack X, Z, T, d1_quad, d2_quad = data
     L = 0.0
     α = θ[1:3]
@@ -215,11 +263,13 @@ function log_like_quad(data::Data, θ)
     ρ = θ[20]
     L_vec = zeros(length(T))
     for i=1:length(T)
-        L += log(likelihood_quad(data, X[i,:], Z[i,:], T[i], α, β, γ, ρ))
-        L_vec[i] = likelihood_quad(data, X[i,:], Z[i,:], T[i], α, β, γ, ρ)
+        L_i = likelihood_quad(data, X[i,:], Z[i,:], T[i], α, β, γ, ρ)
+        L += log(L_i)
+        L_vec[i] = L_i
     end
     L, L_vec
 end
+
 
 function log_like_GHK(data::Data, θ, n_draw)
     @unpack X, Z, T = data
@@ -237,8 +287,82 @@ function log_like_GHK(data::Data, θ, n_draw)
     L, L_vec
 end
 
+function log_like_AR(data::Data, θ, n_draw)
+    @unpack X, Z, T = data
+    L = 0.0
+    α = θ[1:3]
+    β = θ[4:18]
+    γ = θ[19]
+    ρ = θ[20]
+    L_vec = zeros(length(T))
+    shock_mat = [halton_draws(n_draw, 7) halton_draws(n_draw, 11)  halton_draws(n_draw, 13) ]
+    for i=1:length(T)
+        L_i = likelihood_AR(X[i,:], Z[i,:], T[i], α, β, γ, ρ, shock_mat)
+        L_vec[i] = L_i
+        if L_i > 0
+            L += log.(L_i)
+        else
+            L += -1e12
+        end
+    end
+    L, L_vec
+end
+
 θ_init = vcat([0,-1,-1], zeros(15), 0.3, 0.5)
 @elapsed ll, test = log_like_quad(Data(), θ_init)
 opt = optimize(θ -> -log_like_quad(Data(), θ), θ_init, LBFGS(), Optim.Options(show_trace = true, show_every = 1,
 iterations=100, g_tol=1e-3); autodiff=:forward)
+θ_1 = opt.minimizer
+opt_1 = optimize(θ -> -log_like_quad(Data(), θ), θ_1, LBFGS(), Optim.Options(show_trace = true, show_every = 1,
+iterations=100, g_tol=1e-3); autodiff=:forward)
+θ_opt = opt_1.minimizer
+T1 = (Data().T .== 1)
+T2 = (Data().T .== 2)
+T3 = (Data().T .== 3)
+T4 = (Data().T .== 4)
 
+like_types = ["Quadrature", "GHK", "Accept_Reject"]
+function likelihood_comparison(data::Data, l_types, θ, ndraws)
+    for i=1:length(l_types)
+        type = l_types[i]
+        if i == 1
+            @elapsed ll, l_vec = log_like_quad_verbose(data, θ)
+        elseif i ==2
+            @elapsed ll, l_vec = log_like_GHK(data, θ, ndraws)
+        else
+            @elapsed ll, l_vec = log_like_AR(data, θ, ndraws)
+        end
+        println("Simulated likelihood using $(type): $(ll)")
+        ll_plot = histogram([l_vec[T1], l_vec[T2], l_vec[T3], l_vec[T4]],labels=["T = 1" "T = 2" "T = 3" "T = 4"], title="Histogram of likelihoods by outcome, $(type)", legend=:topleft)
+        savefig(ll_plot, "$(type)_ll.png")
+    end
+end
+likelihood_comparison(Data(), like_types, θ_init, 100)
+
+@elapsed ll, l_vec = log_like_GHK(Data(), θ_init,100)
+#GHK took 1.644 seconds
+@elapsed ll, l_vec = log_like_quad_verbose(Data(), θ_init)
+##quadrature takes 1.288 seconds
+@elapsed ll, l_vec = log_like_AR(Data(), θ_init,100)
+#takes 0.482
+
+histogram([test_0[T1], test_0[T2], test_0[T3], test_0[T4]])
+histogram([test_0_g[T1], test_0_g[T2], test_0_g[T3], test_0_g[T4]])
+histogram([test_0_AR[T1], test_0_AR[T2], test_0_AR[T3], test_0_AR[T4]])
+
+plot([test_0[T1], test_0[T2], test_0[T3], test_0[T4]], [test_0_AR[T1], test_0_AR[T2], test_0_AR[T3], test_0_AR[T4]], seriestype=:scatter)
+plot([test_0[T1], test_0[T2], test_0[T3], test_0[T4]], [test_0_AR[T1], test_0_g[T2], test_0_g[T3], test_0_g[T4]], seriestype=:scatter)
+#plot([test_0[T1] - test_0_g[T1], test_0[T2] - test_0_g[T2], test_0[T3] - test_0_g[T3], test_0[T4] - test_0_g[T4]], seriestype=:scatter)
+#plot([test_0[T1] - test_0_AR[T1], test_0[T2] - test_0_AR[T2], test_0[T3] - test_0_AR[T3], test_0[T4] - test_0_AR[T4]], seriestype=:scatter)
+
+
+ll_opt, ll_v_opt = ll, test = log_like_quad(Data(), θ_opt)
+histogram([ll_v_opt[T1], ll_v_opt[T2], ll_v_opt[T3], ll_v_opt[T4]])
+histogram([ll_v_opt[T4], test_0[T4]])
+histogram([test_0_g[T1], test_0_g[T2], test_0_g[T3], test_0_g[T4]])
+histogram([test_0_AR[T1], test_0_AR[T2], test_0_AR[T3], test_0_AR[T4]])
+
+plot(test_0, [ll_v_opt, test_0], seriestype=:scatter)
+
+plot([test_0[T1], test_0[T2], test_0[T3], test_0[T4]], [test_0_AR[T1], test_0_AR[T2], test_0_AR[T3], test_0_AR[T4]], seriestype=:scatter)
+plot([test_0[T1], test_0[T2], test_0[T3], test_0[T4]], [test_0_AR[T1], test_0_g[T2], test_0_g[T3], test_0_g[T4]], seriestype=:scatter)
