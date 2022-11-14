@@ -44,7 +44,7 @@ function T_maker(Y)
 end
 
 function quadrature_d1(data::Data, inside, bound, ρ, σ)
-    @unpack d1_quad = data
+    @unpack d1_quad, d1_jacob = data
     dist = Normal(0,1)
     n=size(d1_quad,1)
     val = 0.0
@@ -52,7 +52,7 @@ function quadrature_d1(data::Data, inside, bound, ρ, σ)
     nodes = - log.(1 .- d1_quad[:,1]) .+ bound
     #nodes = log.(d1_quad[:,1]) .+ bound
     #find jacobian of transformation 
-    jacob = 1 ./(1 .- d1_quad[:,1])
+    jacob = d1_jacob #1 ./(1 .- d1_quad[:,1])
     #jacob = 1 ./(d1_quad[:,1])
     weight = d1_quad[:,2]
     #for i=1:n
@@ -130,52 +130,6 @@ function halton_draws(n_draw, base)
     halt
 end
 
-
-function ghk_like_1d(inside, bound, ρ, σ, shocks)
-    Σ = [σ^2 σ^2*ρ; σ^2*ρ σ^2]
-    L = cholesky(Σ).L
-    #draw from truncated normal on (-inf, bound)
-    dist= Normal(0,1)
-    sample = quantile.(dist, shocks .* cdf(dist, bound))
-    eps_0 = σ .* sample
-    #dens = pdf.(dist,eps_0 ./ σ) ./σ
-    val = sum(cdf.(dist, inside .- ρ .* eps_0))/length(shocks)
-    val
-end
-
-function ghk_2d_3(inside, bound_0, bound_1, ρ, σ, shock_mat)
-    dist = Normal(0,1)
-    Σ = σ^2/(1-ρ^2) .*[1 ρ ρ^2; ρ 1 ρ; ρ^2 ρ 1]
-    L = cholesky(Σ).L
-    sample_0 = quantile.(dist, shock_mat[:,1] .* cdf(dist, bound_0))
-    eps_0 = σ .* sample_0
-    sample_1 = quantile.(dist, shock_mat[:,2] .* cdf(dist, bound_1 .- bound_0 .+ L[2,1] .* sample_0))
-    eps_1 = ρ.*eps_0 + sample_1
-    prob_0 = cdf.(dist, bound_0/L[1,1])
-    prob_1 = cdf.(dist, (bound_1 .- L[1,2]sample_0)/L[2,2])
-    prob_2 = cdf.(dist, (inside .- L[3,1] .*sample_0 .- L[3,2] .*sample_1)/L[3,3])
-    #dens = pdf.(dist, eps_1 - ρ .*eps_0) .* pdf.(dist, eps_0 ./ σ) ./ σ
-    val = sum(prob_0 .* prob_1 .* (1 .- prob_2))/size(shock_mat,1)
-    val
-end
-
-function ghk_2d_4(inside, bound_0, bound_1, ρ, σ, shock_mat)
-    dist = Normal(0,1)
-    Σ = σ^2/(1-ρ^2) .*[1 ρ ρ^2; ρ 1 ρ; ρ^2 ρ 1]
-    L = cholesky(Σ).L
-    sample_0 = quantile.(dist, shock_mat[:,1] .* cdf(dist, bound_0))
-    eps_0 = σ .* sample_0
-    sample_1 = quantile.(dist, shock_mat[:,2] .* cdf(dist, bound_1))
-    sample_3 = quantile.(dist, shock_mat[:,3])
-    eps_1 = ρ.*eps_0 + sample_1
-    
-    prob_0 = cdf.(dist, bound_0/L[1,1])
-    prob_1 = cdf.(dist, (bound_1 .- L[1,2]sample_0)/L[2,2])
-    prob_2 = cdf.(dist, (inside .- L[3,1] .*sample_0 .- L[3,2] .*sample_1)/L[3,3])
-    #dens = pdf.(dist, eps_1 - ρ .*eps_0) .* pdf.(dist, eps_0 ./ σ) ./ σ
-    val = sum(prob_0 .* prob_1 .*  prob_2)/size(shock_mat,1)
-    val
-end
 
 function likelihood_GHK(X, Z, T, α, β, γ, ρ, shock_mat)
     σ = 1/(1-ρ)
@@ -325,12 +279,17 @@ like_types = ["Quadrature", "GHK", "Accept_Reject"]
 function likelihood_comparison(data::Data, l_types, θ, ndraws)
     for i=1:length(l_types)
         type = l_types[i]
+        ll_quad, lv_quad = log_like_quad_verbose(data, θ)
         if i == 1
-            @elapsed ll, l_vec = log_like_quad_verbose(data, θ)
+            ll, l_vec = log_like_quad_verbose(data, θ)
         elseif i ==2
-            @elapsed ll, l_vec = log_like_GHK(data, θ, ndraws)
+            ll, l_vec = log_like_GHK(data, θ, ndraws)
         else
-            @elapsed ll, l_vec = log_like_AR(data, θ, ndraws)
+            ll, l_vec = log_like_AR(data, θ, ndraws)
+        end
+        if i > 1
+            comp_plot = plot([lv_quad[T1], lv_quad[T2], lv_quad[T3], lv_quad[T4]], [l_vec[T1], l_vec[T2], l_vec[T3], l_vec[T4]], xlabel="Individual likelihood, quadrature", ylabel="Individual likelihood, $(type)", legend=:topleft, title="Simulated likelihoods: Quadrature vs $(type)", labels=["T = 1" "T = 2" "T = 3" "T = 4"], seriestype=:scatter)
+            savefig(comp_plot, "$(type)_comp.png")
         end
         println("Simulated likelihood using $(type): $(ll)")
         ll_plot = histogram([l_vec[T1], l_vec[T2], l_vec[T3], l_vec[T4]],labels=["T = 1" "T = 2" "T = 3" "T = 4"], title="Histogram of likelihoods by outcome, $(type)", legend=:topleft)
@@ -339,22 +298,22 @@ function likelihood_comparison(data::Data, l_types, θ, ndraws)
 end
 likelihood_comparison(Data(), like_types, θ_init, 100)
 
-@elapsed ll, l_vec = log_like_GHK(Data(), θ_init,100)
+@belapsed ll, l_vec = log_like_quad_verbose(Data(), θ_init)
+##quadrature took 1.288 seconds
+@belapsed ll, l_vec = log_like_GHK(Data(), θ_init,100)
 #GHK took 1.644 seconds
-@elapsed ll, l_vec = log_like_quad_verbose(Data(), θ_init)
-##quadrature takes 1.288 seconds
-@elapsed ll, l_vec = log_like_AR(Data(), θ_init,100)
-#takes 0.482
+@belapsed ll, l_vec = log_like_AR(Data(), θ_init,100)
+#AR took 0.482
 
-histogram([test_0[T1], test_0[T2], test_0[T3], test_0[T4]])
-histogram([test_0_g[T1], test_0_g[T2], test_0_g[T3], test_0_g[T4]])
-histogram([test_0_AR[T1], test_0_AR[T2], test_0_AR[T3], test_0_AR[T4]])
+#histogram([test_0[T1], test_0[T2], test_0[T3], test_0[T4]])
+#histogram([test_0_g[T1], test_0_g[T2], test_0_g[T3], test_0_g[T4]])
+#histogram([test_0_AR[T1], test_0_AR[T2], test_0_AR[T3], test_0_AR[T4]])
 
 plot([test_0[T1], test_0[T2], test_0[T3], test_0[T4]], [test_0_AR[T1], test_0_AR[T2], test_0_AR[T3], test_0_AR[T4]], seriestype=:scatter)
 plot([test_0[T1], test_0[T2], test_0[T3], test_0[T4]], [test_0_AR[T1], test_0_g[T2], test_0_g[T3], test_0_g[T4]], seriestype=:scatter)
 #plot([test_0[T1] - test_0_g[T1], test_0[T2] - test_0_g[T2], test_0[T3] - test_0_g[T3], test_0[T4] - test_0_g[T4]], seriestype=:scatter)
 #plot([test_0[T1] - test_0_AR[T1], test_0[T2] - test_0_AR[T2], test_0[T3] - test_0_AR[T3], test_0[T4] - test_0_AR[T4]], seriestype=:scatter)
-
+lap(round.(θ_opt, digits=3))
 
 ll_opt, ll_v_opt = ll, test = log_like_quad(Data(), θ_opt)
 histogram([ll_v_opt[T1], ll_v_opt[T2], ll_v_opt[T3], ll_v_opt[T4]])
