@@ -289,6 +289,7 @@ function likelihood_comparison(data::Data, l_types, θ, ndraws)
         end
         if i > 1
             comp_plot = plot([lv_quad[T1], lv_quad[T2], lv_quad[T3], lv_quad[T4]], [l_vec[T1], l_vec[T2], l_vec[T3], l_vec[T4]], xlabel="Individual likelihood, quadrature", ylabel="Individual likelihood, $(type)", legend=:topleft, title="Simulated likelihoods: Quadrature vs $(type)", labels=["T = 1" "T = 2" "T = 3" "T = 4"], seriestype=:scatter)
+            plot!([0.0, 1.0], [0.0, 1.0], l=2, labels="45-degree line")
             savefig(comp_plot, "$(type)_comp.png")
         end
         println("Simulated likelihood using $(type): $(ll)")
