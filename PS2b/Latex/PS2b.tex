@@ -41,7 +41,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\rhead{Asha Bharadwaj, Caitlin Dutta, John Higgins, Alexis Smith\\Econ 899 \\ 4 November, 2022} 
+\rhead{Asha Bharadwaj, Caitlin Dutta, John Higgins, Alexis Smith\\Econ 899 \\ 18 November, 2022} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -173,7 +173,7 @@ Combining these and using the above definitions of $b_0, b_1,$ and $b_2$, the li
     The sampling procedure for $T_i = 4$ is identical, and the simulated likelihood is given by
     \[\hat{P}(T_i = 4 \mid X_i, Z_i, \theta) =[1-\Phi(b_0/\sigma)] [1 - \Phi(b_1 - \rho \eps_{i0}^k)] [1 -\Phi(b_2 - \rho \eps_{i1}^k)]\]
 
-    Using this procedure, we find that the log-likelihood of the initial parameter guess is $-13579.539$, which is very close to the log-likelihood obtained in the first part. The histogram of likelihoods by outcome is included below. It matches very closely with that of quadrature:
+    Using this procedure, we find that the log-likelihood of the initial parameter guess is $-13584.549$, which is very close to the log-likelihood obtained in the first part. The histogram of likelihoods by outcome is included below. It matches very closely with that of quadrature:
     \begin{center}
         \includegraphics[scale=0.5]{GHK_ll.png}
     \end{center}
@@ -198,7 +198,7 @@ In the first figure, we plot the simulated likelihoods for quadrature on the hor
     \end{center}
 In the second figure, we plot the simulated likelihoods for quadrature on the horizontal axis and the simulated likelihoods for Accept/Reject on the vertical axis. We see that Accept/Reject is a bit less similar than GHK was. As previously discussed, this is attributable to the fact that the effective sample size for A/R is smaller since some draws are rejected. This leads to less precise estimates of the simulated likelihood than the other two methods.
 
-We now compare the time it took for each method to complete. Running each once after initially compiling, we find that quadrature took 1.288 seconds, GHK took 1.644 seconds, and Accept/Reject took 0.482 seconds. Using the @belapsed command to run each routine many times and find the minimum runtime, we find that quadrature took a minimum of 0.898 seconds, GHK took a minimum of 0.982 seconds, and Accept/Reject took a minimum of 0.326 seconds. While A/R is fastest, it is also less consistent than the other methods. GHK and quadrature are close in terms of time, but quadrature seems to be a bit faster. 
+We now compare the time it took for each method to complete. Running each once after initially compiling, we find that quadrature took 1.142 seconds, GHK took 0.750 seconds, and Accept/Reject took 0.482 seconds. Using the @belapsed command to run each routine many times and find the minimum runtime, we find that quadrature took a minimum of 0.787 seconds, GHK took a minimum of 0.5003 seconds, and Accept/Reject took a minimum of 0.326 seconds. While A/R is fastest, it is also less consistent than the other methods. It seems like GHK is faster than quadrature. However, this performance advantage will be diminished somewhat when a larger sample is taken (as we usually would). Generally, my impression is that quadrature offers better precision versus taking random samples, so this may be an instance where the tradeoff between speed and precision must be made. 
     \begin{center}
         \includegraphics[scale=0.5]{Accept_Reject_comp.png}
     \end{center}
@@ -237,5 +237,14 @@ $\rho$ & 0.494 \\
     \end{tabular}
 \end{table}
 The maximimum log-likelihood evaluated at this parameter vector is -11374.07. It took approximately 36 minutes to get convergence using L-BFGS.
+
+For fun, we plot the histogram of likelihoods at the optimal parameter vector below, as well as a comparison between the likelihoods at the optimal parameter vector vs the initial parameter vector:
+\begin{center}
+    \includegraphics[scale=0.5]{opt_hist.png}
+\end{center}
+\begin{center}
+    \includegraphics[scale=0.5]{scatter_comp.png}
+\end{center}
+We can see that the likelihoods tend to be higher under the optimal parameter vector (they'd better be!! I didn't spend 36 minutes running LBGFS for fun). This can be seen more clearly in the scatter plot, where the x coordinate of each dot is the likelihood of the observation under $\theta_0$ and the y coordinate is the likelihood of the observation under the optimal $\hat{\theta}$. the 45-degree line is also plotted (if a point lies above this line, then it has a higher likelihood under $\hat{\theta})$. We see that most of the points lie above the 45-degree line, except for T = 1 (which seems to be pretty low).
 \end{sol}
 \end{document}

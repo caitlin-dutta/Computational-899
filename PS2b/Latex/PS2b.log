@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.6)  13 NOV 2022 23:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.6)  14 NOV 2022 22:42
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -758,7 +758,18 @@ With luck, this will get me unwedged. But if you
 really didn't forget anything, try typing `2' now; then
 my insertion and my current dilemma will both disappear.
 
-[10 <./Accept_Reject_comp.png>] [11] (./PS2b.aux)
+<opt_hist.png, id=61, 602.25pt x 401.5pt>
+File: opt_hist.png Graphic file (type png)
+<use opt_hist.png>
+Package pdftex.def Info: opt_hist.png  used on input line 243.
+(pdftex.def)             Requested size: 301.12425pt x 200.7495pt.
+[10 <./Accept_Reject_comp.png>]
+<scatter_comp.png, id=66, 602.25pt x 401.5pt>
+File: scatter_comp.png Graphic file (type png)
+<use scatter_comp.png>
+Package pdftex.def Info: scatter_comp.png  used on input line 246.
+(pdftex.def)             Requested size: 301.12425pt x 200.7495pt.
+ [11 <./opt_hist.png>] [12 <./scatter_comp.png>] (./PS2b.aux)
 
 Package rerunfilecheck Warning: File `PS2b.out' has changed.
 (rerunfilecheck)                Rerun to get outlines right
@@ -769,18 +780,18 @@ Package rerunfilecheck Info: Checksums for `PS2b.out':
 (rerunfilecheck)             After:  D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 26328 strings out of 478268
- 495426 string characters out of 5846348
- 759724 words of memory out of 5000000
- 44095 multiletter control sequences out of 15000+600000
+ 26343 strings out of 478268
+ 495691 string characters out of 5846348
+ 759725 words of memory out of 5000000
+ 44107 multiletter control sequences out of 15000+600000
  475404 words of font info for 52 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,16n,89p,688b,429s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,16n,89p,949b,435s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on PS2b.pdf (11 pages, 280752 bytes).
+Output written on PS2b.pdf (12 pages, 423471 bytes).
 PDF statistics:
- 122 PDF objects out of 1000 (max. 8388607)
- 81 compressed objects within 1 object stream
- 13 named destinations out of 1000 (max. 500000)
- 38 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 128 PDF objects out of 1000 (max. 8388607)
+ 84 compressed objects within 1 object stream
+ 14 named destinations out of 1000 (max. 500000)
+ 48 words of extra memory for PDF output out of 10000 (max. 10000000)
 
