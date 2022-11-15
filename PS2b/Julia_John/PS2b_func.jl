@@ -291,7 +291,7 @@ function log_like_AR(data::Data, θ, n_draw)
 end
 
 
-
+#function which computes log likelihoods for each type, creates plots, and saves them
 function likelihood_comparison(data::Data, l_types, θ, ndraws)
     for i=1:length(l_types)
         type = l_types[i]
